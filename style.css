@@ -21,6 +21,11 @@ button {
     height: 80px;
     width: 80px;
     cursor: pointer;
+    transition: transform 0.15s ease-in-out;
+}
+
+button:hover {
+  transform: scale(1.03);
 }
 
 .container {
@@ -107,6 +112,7 @@ footer {
     color: #777;
     margin-top: 2rem;
 }
+
 footer a {
     text-decoration: none;
     color: #777;
