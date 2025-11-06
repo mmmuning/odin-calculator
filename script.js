@@ -156,3 +156,23 @@ buttonsContainer.addEventListener("click", (e) => {
     return;
   }
 });
+
+// --- Keyboard Support ---
+resultDisplay.addEventListener("keydown", (e) => {
+  const key = e.key;
+
+  // Prevent default typing
+  e.preventDefault();
+
+  if (key >= "0" && key <= "9") {
+    currentDisplayNum += key;
+    populateResultDisplay(currentDisplayNum);
+  } else if (key === ".") {
+    if (!currentDisplayNum.includes(".")) {
+      currentDisplayNum += ".";
+      populateResultDisplay(currentDisplayNum);
+    }
+  } else if (key === "Backspace") {
+    deleteNumEntry();
+  }
+});
