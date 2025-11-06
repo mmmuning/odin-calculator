@@ -1,29 +1,28 @@
-// User inputs a string of numbers
-// Once the user clicks any operator, save the string of numbers into num1 and the current chosen operator
-// The user will then input a new string of numbers, and once they click any operator
-// It should then operate those two numbers based on the current chosen operator
-
+const equationDisplay = document.querySelector("#equation-display");
 const resultDisplay = document.querySelector("#result-display");
 const buttonsContainer = document.querySelector(".buttons-container");
 
+let currentEquation = "";
 let currentDisplayNum = "";
 let currentOperator = "";
-let num1,
-  num2 = 0;
+let num1 = null;
+let num2 = null;
 
+// --- Basic Math Operations ---
 function add(num1, num2) {
   return num1 + num2;
 }
 function subtract(num1, num2) {
   return num1 - num2;
 }
-
 function multiply(num1, num2) {
   return num1 * num2;
 }
-
 function divide(num1, num2) {
-  if (num1 === 0) return 0;
+  if (num2 === 0) {
+    alert("Oops! You can't divide by zero, unfortunately.");
+    return 0;
+  }
   return num1 / num2;
 }
 
@@ -37,64 +36,123 @@ function operate(operator, num1, num2) {
       return multiply(num1, num2);
     case "/":
       return divide(num1, num2);
-    case "=":
-      return; // Change later
     default:
       console.log("Invalid operator.");
   }
 }
 
-function populateDisplay(num) {
-  currentDisplayNum += num;
-  resultDisplay.value = Number(currentDisplayNum).toLocaleString();
+// --- Display Helpers ---
+function populateEquationDisplay(equation) {
+  currentEquation = equation;
+  equationDisplay.value = currentEquation;
+}
+
+function populateResultDisplay(num) {
+  resultDisplay.value = Number(num).toLocaleString();
+}
+
+function clearEquationDisplay() {
+  currentEquation = "";
+  equationDisplay.value = "";
+}
+
+function clearResultDisplay() {
+  currentDisplayNum = "";
+  resultDisplay.value = "";
+}
+
+function clearAll() {
+  clearEquationDisplay();
+  clearResultDisplay();
+  num1 = null;
+  num2 = null;
+  currentOperator = "";
 }
 
 function deleteNumEntry() {
-  resultDisplay.value = currentDisplayNum.slice(0, -1);
-  currentDisplayNum = resultDisplay.value;
+  currentDisplayNum = currentDisplayNum.slice(0, -1);
+  resultDisplay.value = currentDisplayNum;
 }
 
-function clearDisplay() {
-  currentDisplayNum = "";
-  resultDisplay.value = "";
+// --- Operator Handler ---
+function handleOperator(nextOperator) {
+  // Case 1: We already have num1 and operator, so we can proceed to store num2 and operate
+  if (currentOperator && currentDisplayNum !== "") {
+    num2 = Number(currentDisplayNum);
+    populateEquationDisplay(`${num1} ${currentOperator} ${num2}`);
 
-  num1 = 0;
-  num2 = 0;
+    const result = operate(currentOperator, num1, num2);
+    populateResultDisplay(result);
+
+    // Carry forward the result
+    num1 = result;
+    currentDisplayNum = "";
+  }
+  // Case 2: First time pressing operator, store num1
+  else if (currentDisplayNum !== "") {
+    num1 = Number(currentDisplayNum);
+    populateEquationDisplay(`${num1} ${nextOperator}`);
+    currentDisplayNum = "";
+  }
+
+  // Case 3: Pressing operator twice, just update it
+  currentOperator = nextOperator;
+  populateEquationDisplay(`${num1} ${currentOperator}`);
 }
 
+// --- Action Handler ---
+function handleAction(button) {
+  if (button === "equal") {
+    if (currentOperator && currentDisplayNum !== "") {
+      num2 = Number(currentDisplayNum);
+      populateEquationDisplay(`${num1} ${currentOperator} ${num2}`);
+
+      const result = operate(currentOperator, num1, num2);
+      populateResultDisplay(result);
+
+      // Prepare for new operation
+      num1 = result;
+      currentDisplayNum = "";
+      currentOperator = "";
+    }
+  }
+
+  if (button === "clear") clearAll();
+  if (button === "delete") deleteNumEntry();
+}
+
+// --- Number Handler ---
+function handleNumberInput(value) {
+  // Prevent multiple decimals
+  if (value === "." && currentDisplayNum.includes(".")) return;
+
+  // If user presses "." first, prefix with 0
+  if (value === "." && currentDisplayNum === "") {
+    currentDisplayNum = "0.";
+  } else {
+    currentDisplayNum += value;
+  }
+
+  resultDisplay.value = currentDisplayNum;
+}
+
+// --- Button Event Listener ---
 buttonsContainer.addEventListener("click", (e) => {
   const button = e.target.closest("button");
   if (!button) return;
 
   if (button.dataset.number) {
-    populateDisplay(button.dataset.number);
+    handleNumberInput(button.dataset.number);
+    return;
   }
 
   if (button.dataset.operator) {
-    const nextOperator = button.dataset.operator;
-
-    if (currentOperator && currentDisplayNum !== "") {
-      num2 = Number(currentDisplayNum);
-      console.log(`num2: ${num2}`);
-
-      const result = operate(currentOperator, num1, num2);
-      console.log(`result: ${result}`);
-
-      clearDisplay();
-      populateDisplay(result);
-
-      num1 = result; // Result becomes the num1
-      currentDisplayNum = "";
-    } else {
-      num1 = Number(currentDisplayNum);
-      console.log(`num1: ${num1}`);
-      currentDisplayNum = "";
-    }
-
-    currentOperator = nextOperator; // Store the operator for next round
-    console.log(`operator: ${currentOperator}`);
+    handleOperator(button.dataset.operator);
+    return;
   }
 
-  if (button.dataset.action === "clear") clearDisplay();
-  if (button.dataset.action === "delete") deleteNumEntry();
+  if (button.dataset.action) {
+    handleAction(button.dataset.action);
+    return;
+  }
 });
