@@ -33,8 +33,12 @@ button {
     gap: 20px;
 }
 
+.result-container {
+    display: flex;
+}
+
 #result-display {
-    font-size: 40px;
+    font-size: 50px;
     background-color: #f1f2f3;
     text-align: right;
     border: none;
